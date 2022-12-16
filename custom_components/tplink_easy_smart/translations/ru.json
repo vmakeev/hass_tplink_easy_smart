@@ -1,0 +1,28 @@
+{
+    "config": {
+        "title": "TP-Link Easy Smart",
+        "step": {
+            "user": {
+                "description": "Настройка интеграции TP-Link Easy Smart.",
+                "data": {
+                    "name": "Название интеграции",
+                    "host": "Адрес маршрутизатора",
+                    "port": "Порт",
+                    "username": "Имя пользователя",
+                    "password": "Пароль",
+                    "ssl": "Использовать SSL",
+                    "verify_ssl": "Проверять сертификат",
+                    "scan_interval": "Период обновления"
+                }
+            }
+        },
+        "error": {
+            "name_exists": "Имя уже используется.",
+            "auth_general": "Не удалось выполнить аутентификацию.",
+            "auth_invalid_credentials": "Неверное имя пользователя или пароль.",
+            "auth_user_blocked": "Вход для данного пользователя запрещен.",
+            "auth_too_many_users": "Слишком много активных пользователей.",
+            "auth_session_timeout": "Таймаут сессии истек."
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "domain": "tplink_easy_smart",
+  "name": "TP-Link Easy Smart",
+  "integration_type": "device",
+  "documentation": "https://github.com/vmakeev/tplink_easy_smart",
+  "issue_tracker": "https://github.com/vmakeev/tplink_easy_smart/issues",
+  "codeowners": [
+    "@vmakeev"
+  ],
+  "iot_class": "local_polling",
+  "requirements": [
+    "json5==0.9.10"
+  ],
+  "version": "0.1.0",
+  "config_flow": true
+}
