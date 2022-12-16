@@ -3,10 +3,10 @@
 Home Assistant custom component for control TP-Link Easy Smart switches over LAN.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![License](https://img.shields.io/github/license/vmakeev/tplink_easy_smart)](https://github.com/vmakeev/tplink_easy_smart/blob/master/LICENSE.md)
+[![License](https://img.shields.io/github/license/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/blob/master/LICENSE.md)
 
-[![Release](https://img.shields.io/github/v/release/vmakeev/tplink_easy_smart)](https://github.com/vmakeev/tplink_easy_smart/releases/latest)
-[![ReleaseDate](https://img.shields.io/github/release-date/vmakeev/tplink_easy_smart)](https://github.com/vmakeev/tplink_easy_smart/releases/latest)
+[![Release](https://img.shields.io/github/v/release/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest)
+[![ReleaseDate](https://img.shields.io/github/release-date/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest)
 ![Maintained](https://img.shields.io/maintenance/yes/2022)
 
 ## Key features
@@ -30,11 +30,11 @@ Home Assistant custom component for control TP-Link Easy Smart switches over LAN
 
 ### Manual
 
-Copy `tplink_easy_smart` folder from [latest release](https://github.com/vmakeev/tplink_easy_smart/releases/latest) to `custom_components` folder in your Home Assistant config folder and restart Home Assistant. The final path to folder should look like this: `<home-assistant-config-folder>/custom_components/tplink_easy_smart`.
+Copy `tplink_easy_smart` folder from [latest release](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest) to `custom_components` folder in your Home Assistant config folder and restart Home Assistant. The final path to folder should look like this: `<home-assistant-config-folder>/custom_components/tplink_easy_smart`.
 
 ### HACS
 
-[Add a custom repository](https://hacs.xyz/docs/faq/custom_repositories/) `https://github.com/vmakeev/tplink_easy_smart` with `Integration` category to [HACS](https://hacs.xyz/) and restart Home Assistant.
+[Add a custom repository](https://hacs.xyz/docs/faq/custom_repositories/) `https://github.com/vmakeev/hass_tplink_easy_smart` with `Integration` category to [HACS](https://hacs.xyz/) and restart Home Assistant.
 
 ## Configuration
 
