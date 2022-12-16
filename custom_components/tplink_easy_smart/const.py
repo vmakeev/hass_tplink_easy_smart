@@ -14,6 +14,9 @@ DEFAULT_PASS: Final = ""
 DEFAULT_NAME: Final = "TP-Link Switch"
 DEFAULT_VERIFY_SSL: Final = False
 DEFAULT_SCAN_INTERVAL: Final = 30
+DEFAULT_PORT_STATE_SWITCHES: Final = False
+
+CONF_PORT_STATE_SWITCHES = "port_state_switches"
 
 DATA_KEY_COORDINATOR = "coordinator"
 

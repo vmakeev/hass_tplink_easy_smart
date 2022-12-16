@@ -11,19 +11,35 @@
                     "username": "Username",
                     "password": "Password",
                     "ssl": "Use SSL",
-                    "verify_ssl": "Verify SSL cert",
-                    "scan_interval": "Update interval"
+                    "verify_ssl": "Verify SSL cert"
                 }
             }
         },
         "error": {
             "name_exists": "The name already used.",
             "auth_general": "Can not authenticate.",
-            "auth_invalid_csrf": "CSRF error, try again.",
             "auth_invalid_credentials": "Invalid username or password.",
             "auth_user_blocked": "The user is not allowed to login.",
             "auth_too_many_users": "The number of the user that allowed to login has been full.",
             "auth_session_timeout": "The session is timeout."
+        }
+    },
+    "options": {
+        "step": {
+            "basic_options": {
+                "data": {
+                    "scan_interval": "Update interval"
+                },
+                "title": "TP-Link easy smart switch setup (1\/2)",
+                "description": "Basic options"
+            },
+            "features_select": {
+                "data": {
+                    "port_state_switches": "Port state switches"
+                },
+                "title": "TP-Link easy smart switch setup (2\/2)",
+                "description": "Controls"
+            }
         }
     }
 }

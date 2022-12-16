@@ -1,6 +1,7 @@
 """Helpful common functions."""
 
 from homeassistant.helpers.entity import generate_entity_id as hass_generate_id
+
 from .update_coordinator import TpLinkDataUpdateCoordinator
 
 

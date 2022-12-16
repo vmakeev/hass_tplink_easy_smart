@@ -19,7 +19,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .client.classes import TpLinkSystemInfo
 from .client.tplink_api import PortSpeed, PortState, TpLinkApi
-from .const import ATTR_MANUFACTURER, DOMAIN
+from .const import ATTR_MANUFACTURER, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,12 +43,17 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         self._switch_info: TpLinkSystemInfo | None = None
         self._port_states: list[PortState] = []
 
+        update_interval = config_entry.options.get(
+            CONF_SCAN_INTERVAL,
+            config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        )
+
         super().__init__(
             hass,
             _LOGGER,
             name=config_entry.data[CONF_NAME],
             update_method=self.async_update,
-            update_interval=timedelta(seconds=config_entry.data[CONF_SCAN_INTERVAL]),
+            update_interval=timedelta(seconds=update_interval),
         )
 
     @property

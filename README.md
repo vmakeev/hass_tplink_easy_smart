@@ -40,6 +40,11 @@ Copy `tplink_easy_smart` folder from [latest release](https://github.com/vmakeev
 
 Configuration > [Integrations](https://my.home-assistant.io/redirect/integrations/) > Add Integration > [TP-Link Easy Smart](https://my.home-assistant.io/redirect/config_flow_start/?domain=tplink_easy_smart)
 
+### Advanced options
+
+You can perform advanced component configuration by clicking the `CONFIGURE` button after adding it. Advanced settings include:
+* Data update interval
+* Enabling or disabling [port state switches](#port-state)
 
 ## Sensors
 
@@ -97,7 +102,9 @@ _Note: The sensor will be unavailable if the port is not enabled (see [port stat
 
 The component allows you to enable and disable each port.
 
-There are several switches that are always present:
+By default, adding these switches is disabled, but you can add them via [options](#advanced-options).
+
+There are several switches:
 * `switch.<integration_name>_port_<port_number>_enabled`
 
-_Note: these switches are not enabled by default. If you need to use this feature, please enable it manually. Don't use this feature if you don't know what you are doing._
+_Note: don't use this feature if you don't know what you are doing._

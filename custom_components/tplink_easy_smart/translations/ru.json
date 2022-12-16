@@ -11,8 +11,7 @@
                     "username": "Имя пользователя",
                     "password": "Пароль",
                     "ssl": "Использовать SSL",
-                    "verify_ssl": "Проверять сертификат",
-                    "scan_interval": "Период обновления"
+                    "verify_ssl": "Проверять сертификат"
                 }
             }
         },
@@ -23,6 +22,24 @@
             "auth_user_blocked": "Вход для данного пользователя запрещен.",
             "auth_too_many_users": "Слишком много активных пользователей.",
             "auth_session_timeout": "Таймаут сессии истек."
+        }
+    },
+    "options": {
+        "step": {
+            "basic_options": {
+                "data": {
+                    "scan_interval": "Период обновления"
+                },
+                "title": "Настройка интеграции TP-Link Easy Smart (1\/2)",
+                "description": "Базовые настройки"
+            },
+            "features_select": {
+                "data": {
+                    "port_state_switches": "Выключатели портов"
+                },
+                "title": "Настройка интеграции TP-Link Easy Smart (2\/2)",
+                "description": "Элементы управления"
+            }
         }
     }
 }
