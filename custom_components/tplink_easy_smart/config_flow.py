@@ -4,7 +4,7 @@ import logging
 
 import voluptuous as vol
 
-from homeassistant.config_entries import CONN_CLASS_LOCAL_POLL, ConfigFlow
+from homeassistant.config_entries import CONN_CLASS_LOCAL_POLL, ConfigFlow, OptionsFlow
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
@@ -19,10 +19,12 @@ from homeassistant.core import callback
 
 from .client.coreapi import AuthenticationError, TpLinkWebApi
 from .const import (
+    CONF_PORT_STATE_SWITCHES,
     DEFAULT_HOST,
     DEFAULT_NAME,
     DEFAULT_PASS,
     DEFAULT_PORT,
+    DEFAULT_PORT_STATE_SWITCHES,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SSL,
     DEFAULT_USER,
@@ -55,6 +57,12 @@ class TpLinkControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize."""
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return TpLinkControllerOptionsFlowHandler(config_entry)
 
     async def async_step_import(self, user_input=None):
         """Occurs when a previous entry setup fails and is re-initiated."""
@@ -104,7 +112,6 @@ class TpLinkControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_PORT: DEFAULT_PORT,
                 CONF_SSL: DEFAULT_SSL,
                 CONF_VERIFY_SSL: DEFAULT_VERIFY_SSL,
-                CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
             },
             errors=errors,
         )
@@ -122,15 +129,71 @@ class TpLinkControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_HOST, default=user_input[CONF_HOST]): str,
                     vol.Required(CONF_USERNAME, default=user_input[CONF_USERNAME]): str,
                     vol.Required(CONF_PASSWORD, default=user_input[CONF_PASSWORD]): str,
-                    vol.Optional(CONF_PORT, default=user_input[CONF_PORT]): int,
-                    vol.Optional(CONF_SSL, default=user_input[CONF_SSL]): bool,
-                    vol.Optional(
+                    vol.Required(CONF_PORT, default=user_input[CONF_PORT]): int,
+                    vol.Required(CONF_SSL, default=user_input[CONF_SSL]): bool,
+                    vol.Required(
                         CONF_VERIFY_SSL, default=user_input[CONF_VERIFY_SSL]
                     ): bool,
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL, default=user_input[CONF_SCAN_INTERVAL]
-                    ): int,
                 }
             ),
             errors=errors,
+        )
+
+
+# ---------------------------
+#   TpLinkControllerOptionsFlowHandler
+# ---------------------------
+class TpLinkControllerOptionsFlowHandler(OptionsFlow):
+    """Handle options."""
+
+    def __init__(self, config_entry):
+        """Initialize options flow."""
+        self.config_entry = config_entry
+        self.options = dict(config_entry.options)
+
+    async def async_step_init(self, user_input=None):
+        """Manage the options."""
+        return await self.async_step_basic_options(user_input)
+
+    async def async_step_basic_options(self, user_input=None):
+        """Manage the basic options options."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return await self.async_step_features_select()
+
+        return self.async_show_form(
+            step_id="basic_options",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_SCAN_INTERVAL,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL,
+                            self.config_entry.data.get(
+                                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                            ),
+                        ),
+                    ): int,
+                }
+            ),
+        )
+
+    async def async_step_features_select(self, user_input=None):
+        """Manage the controls select options."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        return self.async_show_form(
+            step_id="features_select",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_PORT_STATE_SWITCHES,
+                        default=self.config_entry.options.get(
+                            CONF_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES
+                        ),
+                    ): bool,
+                },
+            ),
         )

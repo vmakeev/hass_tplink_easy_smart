@@ -12,7 +12,12 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DATA_KEY_COORDINATOR, DOMAIN
+from .const import (
+    CONF_PORT_STATE_SWITCHES,
+    DATA_KEY_COORDINATOR,
+    DEFAULT_PORT_STATE_SWITCHES,
+    DOMAIN,
+)
 from .helpers import generate_entity_id, generate_entity_name, generate_entity_unique_id
 from .update_coordinator import TpLinkDataUpdateCoordinator
 
@@ -66,22 +71,25 @@ async def async_setup_entry(
 
     sensors = []
 
-    for port_number in range(1, coordinator.ports_count + 1):
-        sensors.append(
-            TpLinkPortStateSwitch(
-                coordinator,
-                TpLinkPortSwitchEntityDescription(
-                    key=f"port_{port_number}_enabled",
-                    icon="mdi:ethernet",
-                    port_number=port_number,
-                    device_name=coordinator.get_switch_info().name,
-                    function_uid=_FUNCTION_UID_PORT_STATE_FORMAT.format(port_number),
-                    function_name=_FUNCTION_DISPLAYED_NAME_PORT_STATE_FORMAT.format(
-                        port_number
+    if config_entry.options.get(CONF_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES):
+        for port_number in range(1, coordinator.ports_count + 1):
+            sensors.append(
+                TpLinkPortStateSwitch(
+                    coordinator,
+                    TpLinkPortSwitchEntityDescription(
+                        key=f"port_{port_number}_enabled",
+                        icon="mdi:ethernet",
+                        port_number=port_number,
+                        device_name=coordinator.get_switch_info().name,
+                        function_uid=_FUNCTION_UID_PORT_STATE_FORMAT.format(
+                            port_number
+                        ),
+                        function_name=_FUNCTION_DISPLAYED_NAME_PORT_STATE_FORMAT.format(
+                            port_number
+                        ),
                     ),
-                ),
+                )
             )
-        )
 
     async_add_entities(sensors)
 
@@ -174,7 +182,6 @@ class TpLinkPortStateSwitch(TpLinkSwitch):
         self._attr_extra_state_attributes = {}
         self._port_number = description.port_number
         self._attr_icon = "mdi:ethernet"
-        self._attr_entity_registry_enabled_default = False
 
     async def _go_to_state(self, state: bool):
         info = self._port_info

@@ -3,10 +3,10 @@
 Home Assistant custom component for control TP-Link Easy Smart switches over LAN.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![License](https://img.shields.io/github/license/vmakeev/tplink_easy_smart)](https://github.com/vmakeev/tplink_easy_smart/blob/master/LICENSE.md)
+[![License](https://img.shields.io/github/license/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/blob/master/LICENSE.md)
 
-[![Release](https://img.shields.io/github/v/release/vmakeev/tplink_easy_smart)](https://github.com/vmakeev/tplink_easy_smart/releases/latest)
-[![ReleaseDate](https://img.shields.io/github/release-date/vmakeev/tplink_easy_smart)](https://github.com/vmakeev/tplink_easy_smart/releases/latest)
+[![Release](https://img.shields.io/github/v/release/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest)
+[![ReleaseDate](https://img.shields.io/github/release-date/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest)
 ![Maintained](https://img.shields.io/maintenance/yes/2022)
 
 ## Key features
@@ -30,16 +30,21 @@ Home Assistant custom component for control TP-Link Easy Smart switches over LAN
 
 ### Manual
 
-Copy `tplink_easy_smart` folder from [latest release](https://github.com/vmakeev/tplink_easy_smart/releases/latest) to `custom_components` folder in your Home Assistant config folder and restart Home Assistant. The final path to folder should look like this: `<home-assistant-config-folder>/custom_components/tplink_easy_smart`.
+Copy `tplink_easy_smart` folder from [latest release](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest) to `custom_components` folder in your Home Assistant config folder and restart Home Assistant. The final path to folder should look like this: `<home-assistant-config-folder>/custom_components/tplink_easy_smart`.
 
 ### HACS
 
-[Add a custom repository](https://hacs.xyz/docs/faq/custom_repositories/) `https://github.com/vmakeev/tplink_easy_smart` with `Integration` category to [HACS](https://hacs.xyz/) and restart Home Assistant.
+[Add a custom repository](https://hacs.xyz/docs/faq/custom_repositories/) `https://github.com/vmakeev/hass_tplink_easy_smart` with `Integration` category to [HACS](https://hacs.xyz/) and restart Home Assistant.
 
 ## Configuration
 
 Configuration > [Integrations](https://my.home-assistant.io/redirect/integrations/) > Add Integration > [TP-Link Easy Smart](https://my.home-assistant.io/redirect/config_flow_start/?domain=tplink_easy_smart)
 
+### Advanced options
+
+You can perform advanced component configuration by clicking the `CONFIGURE` button after adding it. Advanced settings include:
+* Data update interval
+* Enabling or disabling [port state switches](#port-state)
 
 ## Sensors
 
@@ -97,7 +102,9 @@ _Note: The sensor will be unavailable if the port is not enabled (see [port stat
 
 The component allows you to enable and disable each port.
 
-There are several switches that are always present:
+By default, adding these switches is disabled, but you can add them via [options](#advanced-options).
+
+There are several switches:
 * `switch.<integration_name>_port_<port_number>_enabled`
 
-_Note: these switches are not enabled by default. If you need to use this feature, please enable it manually. Don't use this feature if you don't know what you are doing._
+_Note: don't use this feature if you don't know what you are doing._
