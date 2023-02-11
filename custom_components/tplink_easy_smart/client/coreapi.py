@@ -394,6 +394,37 @@ class TpLinkWebApi:
 
             return response_text
 
+    async def post(
+        self, path: str, data: dict | None = None, **kwargs: any
+    ) -> str | None:
+        """Perform POST request to the relative address."""
+        async with self._call_locker:
+            await self._ensure_initialized()
+
+            check_authorized: Callable[[ClientResponse, str], bool] = (
+                kwargs.get("check_authorized") or _check_authorized
+            )
+
+            response = await self._post_raw(path, data)
+            response_text = await _get_response_text(response)
+            _LOGGER.debug("Response: %s", response_text)
+
+            if not check_authorized(response, response_text):
+                _LOGGER.debug("POST seems unauthorized, trying to re-authenticate")
+                await self.authenticate()
+
+                response = await self._post_raw(path, data)
+                response_text = await _get_response_text(response)
+
+                if not check_authorized(response, response_text):
+                    raise ApiCallError(
+                        f"Api call error, status:{response.status}",
+                        APICALL_ERRCODE_UNAUTHORIZED,
+                        APICALL_ERRCAT_UNAUTHORIZED,
+                    )
+
+            return response_text
+
     async def get_variables(
         self, path: str, variables: Iterable[Tuple[str, VariableType]], **kwargs: any
     ) -> dict[str, VariableValue | None] | None:

@@ -35,7 +35,8 @@
             },
             "features_select": {
                 "data": {
-                    "port_state_switches": "Port state switches"
+                    "port_state_switches": "Port state switches",
+                    "poe_state_switches": "Port PoE state switches"
                 },
                 "title": "TP-Link easy smart switch setup (2\/2)",
                 "description": "Controls"

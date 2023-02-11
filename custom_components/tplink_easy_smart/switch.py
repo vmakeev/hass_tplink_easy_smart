@@ -13,12 +13,17 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    CONF_PORT_STATE_SWITCHES,
-    DATA_KEY_COORDINATOR,
+    DEFAULT_POE_STATE_SWITCHES,
     DEFAULT_PORT_STATE_SWITCHES,
-    DOMAIN,
+    OPT_POE_STATE_SWITCHES,
+    OPT_PORT_STATE_SWITCHES,
 )
-from .helpers import generate_entity_id, generate_entity_name, generate_entity_unique_id
+from .helpers import (
+    generate_entity_id,
+    generate_entity_name,
+    generate_entity_unique_id,
+    get_coordinator,
+)
 from .update_coordinator import TpLinkDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +31,9 @@ _LOGGER = logging.getLogger(__name__)
 
 _FUNCTION_DISPLAYED_NAME_PORT_STATE_FORMAT: Final = "Port {} enabled"
 _FUNCTION_UID_PORT_STATE_FORMAT: Final = "port_{}_enabled"
+
+_FUNCTION_DISPLAYED_NAME_PORT_POE_STATE_FORMAT: Final = "Port {} PoE enabled"
+_FUNCTION_UID_PORT_POE_STATE_FORMAT: Final = "port_{}_poe_enabled"
 
 ENTITY_DOMAIN: Final = "switch"
 
@@ -65,13 +73,11 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensors for TP-Link component."""
-    coordinator: TpLinkDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_KEY_COORDINATOR
-    ]
+    coordinator: TpLinkDataUpdateCoordinator = get_coordinator(hass, config_entry)
 
     sensors = []
 
-    if config_entry.options.get(CONF_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES):
+    if config_entry.options.get(OPT_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES):
         for port_number in range(1, coordinator.ports_count + 1):
             sensors.append(
                 TpLinkPortStateSwitch(
@@ -85,6 +91,26 @@ async def async_setup_entry(
                             port_number
                         ),
                         function_name=_FUNCTION_DISPLAYED_NAME_PORT_STATE_FORMAT.format(
+                            port_number
+                        ),
+                    ),
+                )
+            )
+
+    if config_entry.options.get(OPT_POE_STATE_SWITCHES, DEFAULT_POE_STATE_SWITCHES):
+        for port_number in range(1, coordinator.ports_poe_count + 1):
+            sensors.append(
+                TpLinkPortPoeStateSwitch(
+                    coordinator,
+                    TpLinkPortSwitchEntityDescription(
+                        key=f"port_{port_number}_poe_enabled",
+                        icon="mdi:lightning-bolt-outline",
+                        port_number=port_number,
+                        device_name=coordinator.get_switch_info().name,
+                        function_uid=_FUNCTION_UID_PORT_POE_STATE_FORMAT.format(
+                            port_number
+                        ),
+                        function_name=_FUNCTION_DISPLAYED_NAME_PORT_POE_STATE_FORMAT.format(
                             port_number
                         ),
                     ),
@@ -136,7 +162,7 @@ class TpLinkSwitch(CoordinatorEntity[TpLinkDataUpdateCoordinator], SwitchEntity,
 
     @abstractmethod
     async def _go_to_state(self, state: bool):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     async def __go_to_state(self, state: bool):
         """Perform transition to the specified state."""
@@ -181,7 +207,6 @@ class TpLinkPortStateSwitch(TpLinkSwitch):
         self._attr_is_on = None
         self._attr_extra_state_attributes = {}
         self._port_number = description.port_number
-        self._attr_icon = "mdi:ethernet"
 
     async def _go_to_state(self, state: bool):
         info = self._port_info
@@ -198,4 +223,40 @@ class TpLinkPortStateSwitch(TpLinkSwitch):
     def _handle_coordinator_update(self) -> None:
         self._port_info = self.coordinator.get_port_state(self._port_number)
         self._attr_is_on = self._port_info.enabled if self._port_info else None
+        super()._handle_coordinator_update()
+
+
+# ---------------------------
+#   TpLinkPortPoeStateSwitch
+# ---------------------------
+class TpLinkPortPoeStateSwitch(TpLinkSwitch):
+
+    entity_description: TpLinkPortSwitchEntityDescription
+
+    def __init__(
+        self,
+        coordinator: TpLinkDataUpdateCoordinator,
+        description: TpLinkPortSwitchEntityDescription,
+    ) -> None:
+        """Initialize."""
+        super().__init__(coordinator, description)
+        self._attr_is_on = None
+        self._attr_extra_state_attributes = {}
+        self._port_number = description.port_number
+
+    async def _go_to_state(self, state: bool):
+        info = self._port_poe_info
+        if not info:
+            _LOGGER.warning(
+                "Can not change switch '%s' PoE state: port info not found", self.name
+            )
+            return
+        await self.coordinator.async_set_port_poe_settings(
+            info.number, state, info.priority, info.power_limit
+        )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._port_poe_info = self.coordinator.get_port_poe_state(self._port_number)
+        self._attr_is_on = self._port_poe_info.enabled if self._port_poe_info else None
         super()._handle_coordinator_update()
