@@ -4,10 +4,11 @@ Home Assistant custom component for control TP-Link Easy Smart switches over LAN
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![License](https://img.shields.io/github/license/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/blob/master/LICENSE.md)
+![Active installations](https://raw.githubusercontent.com/vmakeev/custom_badges_updater/main/tplink_easy_smart.svg)
 
 [![Release](https://img.shields.io/github/v/release/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest)
 [![ReleaseDate](https://img.shields.io/github/release-date/vmakeev/hass_tplink_easy_smart)](https://github.com/vmakeev/hass_tplink_easy_smart/releases/latest)
-![Maintained](https://img.shields.io/maintenance/yes/2022)
+![Maintained](https://img.shields.io/maintenance/yes/2023)
 
 ## Key features
 
@@ -15,15 +16,20 @@ Home Assistant custom component for control TP-Link Easy Smart switches over LAN
   - connection status
   - actual connection speed
   - configured connection speed
+  - Poe status
+  - Poe details (priority, power limits, actual power/current/voltage, power delivery class)
 - ports management:
   - enable or disable specific ports
-- hardware and firmware version of the switch
+  - setting PoE parameters on the specified ports (enable/disable, priority, power limits)
+- obtaining hardware and firmware version of the switch
+- obtaining information about total PoE consumption
+- setting limits on total PoE consumption
 
 ## Supported models
 
 |                                         Name                                          |  Revision | Confirmed |           Notes                         |
 |---------------------------------------------------------------------------------------|-----------|-----------|-----------------------------------------|
-| [TL-SG1016PE](https://www.tp-link.com/en/business-networking/poe-switch/tl-sg1016pe/) |     V1    |    Yes    | All features are available              |
+| [TL-SG1016PE](https://www.tp-link.com/en/business-networking/poe-switch/tl-sg1016pe/) |   V1, V3  |    Yes    | All features are available              |
 | Other Easy Smart switches with web-based user interface                               | --------- |    No     | Will most likely work                   
 
 ## Installation
@@ -40,71 +46,43 @@ Copy `tplink_easy_smart` folder from [latest release](https://github.com/vmakeev
 
 Configuration > [Integrations](https://my.home-assistant.io/redirect/integrations/) > Add Integration > [TP-Link Easy Smart](https://my.home-assistant.io/redirect/config_flow_start/?domain=tplink_easy_smart)
 
+
 ### Advanced options
 
-You can perform advanced component configuration by clicking the `CONFIGURE` button after adding it. Advanced settings include:
-* Data update interval
-* Enabling or disabling [port state switches](#port-state)
+You can perform advanced component configuration by clicking the `CONFIGURE` button after adding it. 
+
+![Integration](docs/images/integration.png)
+
+Advanced settings include:
+|                                          Name                                           |  Default   |
+|-----------------------------------------------------------------------------------------|------------|
+| Update interval                                                                         | 30 seconds |
+| Enabling or disabling [port state switches](docs/controls.md#port-state-switch)         |  Disabled  |
+| Enabling or disabling [port PoE state switches](docs/controls.md#port-poe-state-switch) |  Disabled  |
+
+
+![Options 1/2](docs/images/options_1.png)
+
+![Options 2/2](docs/images/options_2.png)
 
 ## Sensors
 
-### Network information
-
-The component allows you to get the network information of the switch. 
-The sensor value is the IP address of the switch.
-
-There is one sensor that is always present:
-* `sensor.<integration_name>_network_info`
-
-The sensor exposes the following attributes:
-
-|     Attribute     |          Description          |
-|-------------------|-------------------------------|
-| `mac`             | The MAC address or the switch |
-| `gateway`         | Default gateway               |
-| `netmask`         | Subnet mask                   |
-
+* Network information ([read more](docs/sensors.md#network-information))
+* PoE consumption ([read more](docs/sensors.md#poe-consumption))
 
 ## Binary sensors
 
-### Port status
+* Port status ([read more](docs/sensors.md#port-status))
+* Port PoE status ([read more](docs/sensors.md#port-poe-status))
 
-The component allows you to get the status of each port.
-
-There are several sensors that are always present:
-* `binary_sensor.<integration_name>_port_<port_number>_state`
-
-Each sensor exposes the following attributes:
-
-|     Attribute        |          Description         |
-|----------------------|------------------------------|
-| `number`             | The number of the port       |
-| `speed`              | Actual connection speed*     |
-| `speed_config`       | Configured connection speed* |
-
-\* the connection speed is represented by the following values:
-
-|    Value    |        Description        |
-|-------------|---------------------------|
-| `Link Down` | The link is down          |
-| `Auto`      | Automatic speed selection |
-| `10MH`      | 10 Mbps, half-duplex      |
-| `10MF`      | 10 Mbps, full duplex      |
-| `100MH`     | 100 Mbps, half-duplex     |
-| `100MF`     | 100 Mbps, full duplex     |
-| `1000MF`    | 1000 Mbps, full duplex    |
-
-_Note: The sensor will be unavailable if the port is not enabled (see [port state switch](#port-state))._
 
 ## Switches
 
-### Port state
+* Port state ([read more](docs/controls.md#port-state-switch))
+* Port PoE state ([read more](docs/controls.md#port-poe-state-switch))
 
-The component allows you to enable and disable each port.
 
-By default, adding these switches is disabled, but you can add them via [options](#advanced-options).
+## Services
 
-There are several switches:
-* `switch.<integration_name>_port_<port_number>_enabled`
-
-_Note: don't use this feature if you don't know what you are doing._
+* Set the PoE power limit ([read more](docs/services.md#set-the-poe-power-limit))
+* Set PoE settings for a specific port ([read more](docs/services.md#set-poe-settings-for-a-specific-port))
