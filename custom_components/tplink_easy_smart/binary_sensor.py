@@ -14,9 +14,20 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .client.tplink_api import PortSpeed
-from .const import DATA_KEY_COORDINATOR, DOMAIN
-from .helpers import generate_entity_id, generate_entity_name, generate_entity_unique_id
+from .client.tplink_api import PoePowerStatus, PortSpeed
+from .displayed_values import (
+    DISPLAYED_POE_CLASSES,
+    DISPLAYED_POE_POWER_LIMITS,
+    DISPLAYED_POE_POWER_STATUS,
+    DISPLAYED_POE_PRIORITY,
+    DISPLAYED_PORT_SPEED,
+)
+from .helpers import (
+    generate_entity_id,
+    generate_entity_name,
+    generate_entity_unique_id,
+    get_coordinator,
+)
 from .update_coordinator import TpLinkDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,7 +35,9 @@ _LOGGER = logging.getLogger(__name__)
 _FUNCTION_DISPLAYED_NAME_PORT_STATE_FORMAT: Final = "Port {} state"
 _FUNCTION_UID_PORT_STATE_FORMAT: Final = "port_{}_state"
 
-_DISPLAYED_SPEED = ["Link Down", "Auto", "10MH", "10MF", "100MH", "100MF", "1000MF", ""]
+_FUNCTION_DISPLAYED_NAME_PORT_POE_STATE_FORMAT: Final = "Port {} PoE state"
+_FUNCTION_UID_PORT_POE_STATE_FORMAT: Final = "port_{}_poe_state"
+
 
 ENTITY_DOMAIN: Final = "binary_sensor"
 
@@ -64,9 +77,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensors for TP-Link component."""
-    coordinator: TpLinkDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        DATA_KEY_COORDINATOR
-    ]
+    coordinator: TpLinkDataUpdateCoordinator = get_coordinator(hass, config_entry)
 
     sensors = []
 
@@ -82,6 +93,26 @@ async def async_setup_entry(
                     device_name=coordinator.get_switch_info().name,
                     function_uid=_FUNCTION_UID_PORT_STATE_FORMAT.format(port_number),
                     function_name=_FUNCTION_DISPLAYED_NAME_PORT_STATE_FORMAT.format(
+                        port_number
+                    ),
+                ),
+            )
+        )
+
+    for port_number in range(1, coordinator.ports_poe_count + 1):
+        sensors.append(
+            TpLinkPortPoeStateBinarySensor(
+                coordinator,
+                TpLinkPortBinarySensorEntityDescription(
+                    key=f"port_{port_number}_poe_info",
+                    icon="mdi:lightning-bolt-outline",
+                    device_class=BinarySensorDeviceClass.POWER,
+                    port_number=port_number,
+                    device_name=coordinator.get_switch_info().name,
+                    function_uid=_FUNCTION_UID_PORT_POE_STATE_FORMAT.format(
+                        port_number
+                    ),
+                    function_name=_FUNCTION_DISPLAYED_NAME_PORT_POE_STATE_FORMAT.format(
                         port_number
                     ),
                 ),
@@ -157,12 +188,64 @@ class TpLinkPortStateBinarySensor(TpLinkBinarySensor):
             )
 
             self._attr_extra_state_attributes["number"] = port_info.number
-            self._attr_extra_state_attributes["speed"] = _DISPLAYED_SPEED[
-                port_info.speed_actual.value
-            ]
-            self._attr_extra_state_attributes["speed_config"] = _DISPLAYED_SPEED[
-                port_info.speed_config.value
-            ]
+            self._attr_extra_state_attributes["speed"] = DISPLAYED_PORT_SPEED.get(
+                port_info.speed_actual
+            )
+            self._attr_extra_state_attributes[
+                "speed_config"
+            ] = DISPLAYED_PORT_SPEED.get(port_info.speed_config)
+        else:
+            self._attr_available = False
+            self._attr_is_on = None
+
+        super()._handle_coordinator_update()
+
+
+# ---------------------------
+#   TpLinkPortPoeStateBinarySensor
+# ---------------------------
+class TpLinkPortPoeStateBinarySensor(TpLinkBinarySensor):
+    entity_description: TpLinkPortBinarySensorEntityDescription
+
+    def __init__(
+        self,
+        coordinator: TpLinkDataUpdateCoordinator,
+        description: TpLinkPortBinarySensorEntityDescription,
+    ) -> None:
+        """Initialize."""
+        super().__init__(coordinator, description)
+        self._attr_extra_state_attributes = {}
+        self._port_number = description.port_number
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        port_poe_info = self.coordinator.get_port_poe_state(self._port_number)
+
+        if port_poe_info:
+            self._attr_available = port_poe_info.enabled
+
+            self._attr_is_on = (
+                port_poe_info.enabled
+                and port_poe_info.power_status != PoePowerStatus.OFF
+            )
+
+            self._attr_extra_state_attributes["priority"] = DISPLAYED_POE_PRIORITY.get(
+                port_poe_info.priority
+            )
+            self._attr_extra_state_attributes[
+                "power_limit"
+            ] = DISPLAYED_POE_POWER_LIMITS.get(
+                port_poe_info.power_limit, port_poe_info.power_limit
+            )
+            self._attr_extra_state_attributes["power_w"] = port_poe_info.power
+            self._attr_extra_state_attributes["current_ma"] = port_poe_info.current
+            self._attr_extra_state_attributes["voltage_v"] = port_poe_info.voltage
+            self._attr_extra_state_attributes["pd_class"] = DISPLAYED_POE_CLASSES.get(
+                port_poe_info.pd_class
+            )
+            self._attr_extra_state_attributes[
+                "power_status"
+            ] = DISPLAYED_POE_POWER_STATUS.get(port_poe_info.power_status)
         else:
             self._attr_available = False
             self._attr_is_on = None

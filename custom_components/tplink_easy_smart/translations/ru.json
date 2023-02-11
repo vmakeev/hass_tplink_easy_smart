@@ -35,7 +35,8 @@
             },
             "features_select": {
                 "data": {
-                    "port_state_switches": "Выключатели портов"
+                    "port_state_switches": "Выключатели портов",
+                    "poe_state_switches": "Выключатели PoE портов"
                 },
                 "title": "Настройка интеграции TP-Link Easy Smart (2\/2)",
                 "description": "Элементы управления"

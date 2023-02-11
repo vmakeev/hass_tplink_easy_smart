@@ -17,8 +17,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .client.classes import TpLinkSystemInfo
-from .client.tplink_api import PortSpeed, PortState, TpLinkApi
+from .client.classes import PoePowerLimit, PoePriority, TpLinkSystemInfo
+from .client.tplink_api import PoeState, PortPoeState, PortSpeed, PortState, TpLinkApi
 from .const import ATTR_MANUFACTURER, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +42,8 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         )
         self._switch_info: TpLinkSystemInfo | None = None
         self._port_states: list[PortState] = []
+        self._port_poe_states: list[PortPoeState] = []
+        self._poe_state: PoeState | None = None
 
         update_interval = config_entry.options.get(
             CONF_SCAN_INTERVAL,
@@ -76,15 +78,77 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         """Return ports count of the device."""
         return len(self._port_states)
 
+    @property
+    def ports_poe_count(self) -> int:
+        """Return PoE ports count of the device."""
+        return len(self._port_poe_states)
+
     def get_port_state(self, number: int) -> PortState | None:
         """Return the specified port state."""
         if number > self.ports_count or number < 1:
             return None
         return self._port_states[number - 1]
 
+    def get_port_poe_state(self, number: int) -> PortPoeState | None:
+        """Return the specified port PoE state."""
+        if number > self.ports_poe_count or number < 1:
+            return None
+        return self._port_poe_states[number - 1]
+
     def get_switch_info(self) -> TpLinkSystemInfo | None:
         """Return the information of the switch."""
         return self._switch_info
+
+    def get_poe_state(self) -> PoeState | None:
+        """Return the switch PoE state."""
+        return self._poe_state
+
+    def _safe_disconnect(self, api: TpLinkApi) -> None:
+        """Disconnect from API."""
+        try:
+            self.hass.async_add_job(api.disconnect)
+        except Exception as ex:
+            _LOGGER.warning("Can not schedule disconnect: %s", str(ex))
+
+    async def async_update(self) -> None:
+        """Asynchronous update of all data."""
+        _LOGGER.debug("Update started")
+        await self._update_switch_info()
+        await self._update_port_states()
+        await self._update_poe_state()
+        await self._update_port_poe_states()
+        _LOGGER.debug("Update completed")
+
+    def unload(self) -> None:
+        """Unload the coordinator and disconnect from API."""
+        self._safe_disconnect(self._api)
+
+    async def _update_switch_info(self):
+        """Update the switch info."""
+        self._switch_info = await self._api.get_device_info()
+
+    async def _update_port_states(self):
+        """Update port states."""
+        try:
+            self._port_states = await self._api.get_port_states()
+        except Exception as ex:
+            _LOGGER.warning("Can not get port states: %s", repr(ex))
+            self._port_states = []
+
+    async def _update_poe_state(self):
+        """Update the switch PoE state."""
+        try:
+            self._poe_state = await self._api.get_poe_state()
+        except Exception as ex:
+            _LOGGER.warning("Can not get poe state: %s", repr(ex))
+
+    async def _update_port_poe_states(self):
+        """Update port PoE states."""
+        try:
+            self._port_poe_states = await self._api.get_port_poe_states()
+        except Exception as ex:
+            _LOGGER.warning("Can not get port poe states: %s", repr(ex))
+            self._port_poe_states = []
 
     def get_device_info(self) -> DeviceInfo | None:
         """Return the DeviceInfo."""
@@ -103,34 +167,6 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         )
         return result
 
-    def _safe_disconnect(self, api: TpLinkApi) -> None:
-        """Disconnect from API."""
-        try:
-            self.hass.async_add_job(api.disconnect)
-        except Exception as ex:
-            _LOGGER.warning("Can not schedule disconnect: %s", str(ex))
-
-    async def async_update(self) -> None:
-        """Asynchronous update of all data."""
-        _LOGGER.debug("Update started")
-        await self._update_switch_info()
-        await self._update_port_states()
-        _LOGGER.debug("Update completed")
-
-    def unload(self) -> None:
-        """Unload the coordinator and disconnect from API."""
-        self._safe_disconnect(self._api)
-
-    async def _update_switch_info(self):
-        self._switch_info = await self._api.get_device_info()
-
-    async def _update_port_states(self):
-        try:
-            self._port_states = await self._api.get_port_states()
-        except Exception as ex:
-            _LOGGER.warning("Can not get port states: %s", repr(ex))
-            self._port_states = []
-
     async def set_port_state(
         self,
         number: int,
@@ -138,6 +174,7 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         speed_config: PortSpeed,
         flow_control_config: bool,
     ) -> None:
+        """Set the port state."""
         await self._api.set_port_state(
             number, enabled, speed_config, flow_control_config
         )
@@ -146,3 +183,23 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         if len(self._port_states) >= index:
             self._port_states[index].enabled = enabled
             self.async_update_listeners()
+
+    async def async_set_poe_limit(self, limit: float) -> None:
+        """Set general PoE limit."""
+        await self._api.set_poe_limit(limit)
+        await self._update_poe_state()
+        self.async_update_listeners()
+
+    async def async_set_port_poe_settings(
+        self,
+        port_number: int,
+        enabled: bool,
+        priority: PoePriority,
+        power_limit: PoePowerLimit | float,
+    ) -> None:
+        """Set the port PoE settings."""
+        await self._api.set_port_poe_settings(
+            port_number, enabled, priority, power_limit
+        )
+        await self._update_port_poe_states()
+        self.async_update_listeners()

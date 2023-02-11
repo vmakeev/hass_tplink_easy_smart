@@ -19,10 +19,10 @@ from homeassistant.core import callback
 
 from .client.coreapi import AuthenticationError, TpLinkWebApi
 from .const import (
-    CONF_PORT_STATE_SWITCHES,
     DEFAULT_HOST,
     DEFAULT_NAME,
     DEFAULT_PASS,
+    DEFAULT_POE_STATE_SWITCHES,
     DEFAULT_PORT,
     DEFAULT_PORT_STATE_SWITCHES,
     DEFAULT_SCAN_INTERVAL,
@@ -30,6 +30,8 @@ from .const import (
     DEFAULT_USER,
     DEFAULT_VERIFY_SSL,
     DOMAIN,
+    OPT_POE_STATE_SWITCHES,
+    OPT_PORT_STATE_SWITCHES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,7 +54,7 @@ def configured_instances(hass):
 class TpLinkControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     """TpLinkControllerConfigFlow class"""
 
-    VERSION = 1
+    VERSION = 2
     CONNECTION_CLASS = CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
@@ -189,9 +191,15 @@ class TpLinkControllerOptionsFlowHandler(OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_PORT_STATE_SWITCHES,
+                        OPT_PORT_STATE_SWITCHES,
                         default=self.config_entry.options.get(
-                            CONF_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES
+                            OPT_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES
+                        ),
+                    ): bool,
+                    vol.Required(
+                        OPT_POE_STATE_SWITCHES,
+                        default=self.config_entry.options.get(
+                            OPT_POE_STATE_SWITCHES, DEFAULT_POE_STATE_SWITCHES
                         ),
                     ): bool,
                 },
