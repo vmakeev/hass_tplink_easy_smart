@@ -25,7 +25,7 @@ AUTH_USER_BLOCKED: Final = "auth_user_blocked"
 AUTH_TOO_MANY_USERS: Final = "auth_too_many_users"
 AUTH_SESSION_TIMEOUT: Final = "auth_session_timeout"
 
-_SCRIPT_REGEX = r".*<script>(.*)<\/script>\s*<html>"
+_SCRIPT_REGEX = r".*<script>(.*)<\/script>"
 _VARIABLES_REGEX = r".*var\s+(?P<variable>[a-zA-Z0-9_]+)\s*=\s*(?P<value>[^;]+);\s*"
 _ARRAY_VALUES_REGEX = r"\s*new\s*Array\s*\((?P<items>[^\)]+)\)"
 
@@ -121,7 +121,7 @@ def _get_variables(page: str) -> dict[str, str]:
     if not script_match:
         return result
 
-    script_content = script_match.group(1)
+    script_content = script_match.group(0)
 
     for variable_match in re.finditer(_VARIABLES_REGEX, script_content):
         variable = variable_match.group("variable")
