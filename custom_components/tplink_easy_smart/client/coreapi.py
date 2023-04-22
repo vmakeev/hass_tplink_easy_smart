@@ -1,23 +1,25 @@
 """TP-Link web api core functions."""
 
 import asyncio
-from enum import Enum
 import logging
 import re
+from enum import Enum
 from typing import Callable, Dict, Final, Iterable, Tuple, TypeAlias
 
 import aiohttp
-from aiohttp import ClientResponse
 import json5
+from aiohttp import ClientResponse, ServerDisconnectedError
 
 TIMEOUT: Final = 5.0
 
 APICALL_ERRCODE_UNAUTHORIZED: Final = -2
 APICALL_ERRCODE_REQUEST: Final = -3
+APICALL_ERRCODE_DISCONNECTED: Final = -4
 
 APICALL_ERRCAT_CREDENTIALS: Final = "user_pass_err"
 APICALL_ERRCAT_REQUEST: Final = "request_error"
 APICALL_ERRCAT_UNAUTHORIZED: Final = "unauthorized"
+APICALL_ERRCAT_DISCONNECTED: Final = "disconnected"
 
 AUTH_FAILURE_GENERAL: Final = "auth_general"
 AUTH_FAILURE_CREDENTIALS: Final = "auth_invalid_credentials"
@@ -249,6 +251,12 @@ class TpLinkWebApi:
             )
             _LOGGER.debug("GET %s performed, status: %s", path, response.status)
             return response
+        except ServerDisconnectedError as sde:
+            raise ApiCallError(
+                f"Can not perform GET request at {path} cause of {repr(sde)}",
+                APICALL_ERRCODE_DISCONNECTED,
+                APICALL_ERRCAT_DISCONNECTED,
+            )
         except Exception as ex:
             _LOGGER.error("GET %s failed: %s", path, str(ex))
             raise ApiCallError(
@@ -269,6 +277,12 @@ class TpLinkWebApi:
             )
             _LOGGER.debug("POST to %s performed, status: %s", path, response.status)
             return response
+        except ServerDisconnectedError as sde:
+            raise ApiCallError(
+                f"Can not perform POST request at {path} cause of {repr(sde)}",
+                APICALL_ERRCODE_DISCONNECTED,
+                APICALL_ERRCAT_DISCONNECTED,
+            )
         except Exception as ex:
             _LOGGER.error("POST %s failed: %s", path, str(ex))
             raise ApiCallError(

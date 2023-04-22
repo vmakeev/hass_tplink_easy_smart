@@ -19,6 +19,8 @@ The component allows you to enable and disable PoE for each supported port.
 
 By default, adding these switches are disabled, but you can add them via [options](../README.md#advanced-options).
 
+These switches will not be added to Home Assistant if the device does not support PoE.
+
 There are several switches:
 * `switch.<integration_name>_port_<port_number>_poe_enabled`
 

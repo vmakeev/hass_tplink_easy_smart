@@ -24,13 +24,15 @@ Home Assistant custom component for control TP-Link Easy Smart switches over LAN
 - obtaining hardware and firmware version of the switch
 - obtaining information about total PoE consumption
 - setting limits on total PoE consumption
+- automatic detection of available functions
 
 ## Supported models
 
-|                                         Name                                          |  Revision | Confirmed |           Notes                         |
-|---------------------------------------------------------------------------------------|-----------|-----------|-----------------------------------------|
-| [TL-SG1016PE](https://www.tp-link.com/en/business-networking/poe-switch/tl-sg1016pe/) |   V1, V3  |    Yes    | All features are available              |
-| Other Easy Smart switches with web-based user interface                               | --------- |    No     | Will most likely work                   
+|                                          Name                                            |  Revision | Confirmed |           Notes                         |
+|------------------------------------------------------------------------------------------|-----------|-----------|-----------------------------------------|
+| [TL-SG1016PE](https://www.tp-link.com/en/business-networking/poe-switch/tl-sg1016pe/)    |   V1, V3  |    Yes    | All features are available              |
+| [TL-SG105E](https://www.tp-link.com/en/business-networking/easy-smart-switch/tl-sg105e/) |     V5    |    Yes    | PoE is not supported by device          |
+| Other Easy Smart switches with web-based user interface                                  | --------- |    No     | Will most likely work                   
 
 ## Installation
 

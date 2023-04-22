@@ -18,6 +18,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .client.classes import PoePowerLimit, PoePriority, TpLinkSystemInfo
+from .client.const import FEATURE_POE
 from .client.tplink_api import PoeState, PortPoeState, PortSpeed, PortState, TpLinkApi
 from .const import ATTR_MANUFACTURER, DEFAULT_SCAN_INTERVAL, DOMAIN
 
@@ -110,6 +111,10 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         except Exception as ex:
             _LOGGER.warning("Can not schedule disconnect: %s", str(ex))
 
+    async def is_feature_available(self, feature: str) -> bool:
+        """Return true if specified feature is known and available."""
+        return await self._api.is_feature_available(feature)
+
     async def async_update(self) -> None:
         """Asynchronous update of all data."""
         _LOGGER.debug("Update started")
@@ -137,6 +142,10 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _update_poe_state(self):
         """Update the switch PoE state."""
+
+        if not await self.is_feature_available(FEATURE_POE):
+            return
+
         try:
             self._poe_state = await self._api.get_poe_state()
         except Exception as ex:
@@ -144,6 +153,10 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _update_port_poe_states(self):
         """Update port PoE states."""
+
+        if not await self.is_feature_available(FEATURE_POE):
+            return
+
         try:
             self._port_poe_states = await self._api.get_port_poe_states()
         except Exception as ex:

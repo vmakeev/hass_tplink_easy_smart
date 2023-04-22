@@ -1,7 +1,7 @@
 """TP-Link api."""
 
 import logging
-from typing import Final, Tuple
+from typing import Tuple
 
 from .classes import (
     PoeClass,
@@ -14,17 +14,19 @@ from .classes import (
     PortState,
     TpLinkSystemInfo,
 )
+from .const import (
+    FEATURE_POE,
+    URL_DEVICE_INFO,
+    URL_POE_PORT_SETTINGS_SET,
+    URL_POE_SETTINGS_GET,
+    URL_POE_SETTINGS_SET,
+    URL_PORT_SETTINGS_SET,
+    URL_PORTS_SETTINGS_GET,
+)
 from .coreapi import TpLinkWebApi, VariableType
+from .utils import TpLinkFeaturesDetector
 
 _LOGGER = logging.getLogger(__name__)
-
-_URL_DEVICE_INFO: Final = "SystemInfoRpm.htm"
-_URL_PORTS_SETTINGS_GET: Final = "PortSettingRpm.htm"
-_URL_POE_SETTINGS_GET: Final = "PoeConfigRpm.htm"
-
-_URL_PORT_SETTINGS_SET: Final = "port_setting.cgi"
-_URL_POE_SETTINGS_SET: Final = "poe_global_config.cgi"
-_URL_POE_PORT_SETTINGS_SET: Final = "poe_port_config.cgi"
 
 _POE_PRIORITIES_SET_MAP: dict[PoePriority, int] = {
     PoePriority.HIGH: 1,
@@ -74,7 +76,21 @@ class TpLinkApi:
     ) -> None:
         """Initialize."""
         self._core_api = TpLinkWebApi(host, port, use_ssl, user, password, verify_ssl)
+        self._is_features_updated = False
+        self._features = TpLinkFeaturesDetector(self._core_api)
         _LOGGER.debug("New instance of TpLinkApi created")
+
+    async def _ensure_features_updated(self):
+        if not self._is_features_updated:
+            _LOGGER.debug("Updating available features")
+            await self._features.update()
+            self._is_features_updated = True
+            _LOGGER.debug("Available features updated")
+
+    async def is_feature_available(self, feature: str) -> bool:
+        """Return true if specified feature is known and available."""
+        await self._ensure_features_updated()
+        return self._features.is_available(feature)
 
     async def authenticate(self) -> None:
         """Perform authentication."""
@@ -92,7 +108,7 @@ class TpLinkApi:
     async def get_device_info(self) -> TpLinkSystemInfo:
         """Return the device information."""
         data = await self._core_api.get_variable(
-            _URL_DEVICE_INFO, "info_ds", VariableType.Dict
+            URL_DEVICE_INFO, "info_ds", VariableType.Dict
         )
 
         def get_value(key: str) -> str | None:
@@ -116,7 +132,7 @@ class TpLinkApi:
     async def get_port_states(self) -> list[PortState]:
         """Return the port states."""
         data = await self._core_api.get_variables(
-            _URL_PORTS_SETTINGS_GET,
+            URL_PORTS_SETTINGS_GET,
             [
                 ("all_info", VariableType.Dict),
                 ("max_port_num", VariableType.Int),
@@ -154,8 +170,11 @@ class TpLinkApi:
 
     async def get_port_poe_states(self) -> list[PortPoeState]:
         """Return the port states."""
+        if not await self.is_feature_available(FEATURE_POE):
+            return []
+
         data = await self._core_api.get_variables(
-            _URL_POE_SETTINGS_GET,
+            URL_POE_SETTINGS_GET,
             [
                 ("portConfig", VariableType.Dict),
                 ("poe_port_num", VariableType.Int),
@@ -202,11 +221,13 @@ class TpLinkApi:
 
     async def get_poe_state(self) -> PoeState | None:
         """Return the port states."""
+        if not await self.is_feature_available(FEATURE_POE):
+            return None
 
         _LOGGER.debug("Begin fetching POE states")
 
         poe_config = await self._core_api.get_variable(
-            _URL_POE_SETTINGS_GET, "globalConfig", VariableType.Dict
+            URL_POE_SETTINGS_GET, "globalConfig", VariableType.Dict
         )
         if not poe_config:
             _LOGGER.debug("No globalConfig found, returning")
@@ -235,10 +256,13 @@ class TpLinkApi:
             f"flowcontrol={1 if flow_control_config else 0}&"
             f"apply=Apply"
         )
-        await self._core_api.get(_URL_PORT_SETTINGS_SET, query=query)
+        await self._core_api.get(URL_PORT_SETTINGS_SET, query=query)
 
     async def set_poe_limit(self, limit: float) -> None:
         """Change poe limit."""
+        if not await self.is_feature_available(FEATURE_POE):
+            raise ActionError("POE feature is not supported by device")
+
         current_state = await self.get_poe_state()
         if not current_state:
             raise ActionError("Can not get actual PoE state")
@@ -258,7 +282,7 @@ class TpLinkApi:
             "name_powerremain": current_state.power_remain,
             "applay": "Apply",
         }
-        result = await self._core_api.post(_URL_POE_SETTINGS_SET, data)
+        result = await self._core_api.post(URL_POE_SETTINGS_SET, data)
         _LOGGER.debug("POE_SET_RESULT: %s", result)
 
     async def set_port_poe_settings(
@@ -268,12 +292,14 @@ class TpLinkApi:
         priority: PoePriority,
         power_limit: PoePowerLimit | float,
     ) -> None:
+        if not await self.is_feature_available(FEATURE_POE):
+            raise ActionError("POE feature is not supported by device")
         """Change port poe settings."""
         if port_number < 1:
             raise ActionError("Port number should be greater than or equals to 1")
 
         poe_ports_count = await self._core_api.get_variable(
-            _URL_POE_SETTINGS_GET, "poe_port_num", VariableType.Int
+            URL_POE_SETTINGS_GET, "poe_port_num", VariableType.Int
         )
         if not poe_ports_count:
             raise ActionError("Can not get PoE ports count")
@@ -310,5 +336,5 @@ class TpLinkApi:
             f"sel_{port_number}": 1,
             "applay": "Apply",
         }
-        result = await self._core_api.post(_URL_POE_PORT_SETTINGS_SET, data)
+        result = await self._core_api.post(URL_POE_PORT_SETTINGS_SET, data)
         _LOGGER.debug("POE_PORT_SETTINGS_SET_RESULT: %s", result)
