@@ -15,8 +15,8 @@ from homeassistant.const import POWER_WATT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from .client.const import FEATURE_POE
 
-from .const import DATA_KEY_COORDINATOR, DOMAIN
 from .helpers import (
     generate_entity_id,
     generate_entity_name,
@@ -74,20 +74,24 @@ async def async_setup_entry(
                 function_name=_FUNCTION_DISPLAYED_NAME_NETWORK_INFO,
             ),
         ),
-        TpLinkPoeInfoSensor(
-            coordinator,
-            TpLinkSensorEntityDescription(
-                key="poe_consumption",
-                icon="mdi:lightning-bolt",
-                device_class=SensorDeviceClass.POWER,
-                native_unit_of_measurement=POWER_WATT,
-                state_class=SensorStateClass.MEASUREMENT,
-                device_name=coordinator.get_switch_info().name,
-                function_uid=_FUNCTION_UID_POE_INFO,
-                function_name=_FUNCTION_DISPLAYED_NAME_POE_INFO,
-            ),
-        ),
     ]
+
+    if await coordinator.is_feature_available(FEATURE_POE):
+        sensors.append(
+            TpLinkPoeInfoSensor(
+                coordinator,
+                TpLinkSensorEntityDescription(
+                    key="poe_consumption",
+                    icon="mdi:lightning-bolt",
+                    device_class=SensorDeviceClass.POWER,
+                    native_unit_of_measurement=POWER_WATT,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    device_name=coordinator.get_switch_info().name,
+                    function_uid=_FUNCTION_UID_POE_INFO,
+                    function_name=_FUNCTION_DISPLAYED_NAME_POE_INFO,
+                ),
+            )
+        )
 
     async_add_entities(sensors)
 

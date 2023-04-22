@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from .client.const import FEATURE_POE
 
 from .const import (
     DEFAULT_POE_STATE_SWITCHES,
@@ -97,7 +98,9 @@ async def async_setup_entry(
                 )
             )
 
-    if config_entry.options.get(OPT_POE_STATE_SWITCHES, DEFAULT_POE_STATE_SWITCHES):
+    if config_entry.options.get(
+        OPT_POE_STATE_SWITCHES, DEFAULT_POE_STATE_SWITCHES
+    ) and await coordinator.is_feature_available(FEATURE_POE):
         for port_number in range(1, coordinator.ports_poe_count + 1):
             sensors.append(
                 TpLinkPortPoeStateSwitch(
@@ -194,7 +197,6 @@ class TpLinkSwitch(CoordinatorEntity[TpLinkDataUpdateCoordinator], SwitchEntity,
 #   TpLinkPortStateSwitch
 # ---------------------------
 class TpLinkPortStateSwitch(TpLinkSwitch):
-
     entity_description: TpLinkPortSwitchEntityDescription
 
     def __init__(
@@ -230,7 +232,6 @@ class TpLinkPortStateSwitch(TpLinkSwitch):
 #   TpLinkPortPoeStateSwitch
 # ---------------------------
 class TpLinkPortPoeStateSwitch(TpLinkSwitch):
-
     entity_description: TpLinkPortSwitchEntityDescription
 
     def __init__(

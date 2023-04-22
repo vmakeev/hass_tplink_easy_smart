@@ -24,6 +24,8 @@ The sensor exposes the following attributes:
 The component allows you to get the PoE information of the switch. 
 The sensor value is the actual PoE consumption of the switch in watts.
 
+This sensor will not be added to Home Assistant if the device does not support PoE.
+
 ![PoE consumption sensor](images/sensor_poe_consumption.png)
 
 There is one sensor that is always present:
@@ -41,7 +43,7 @@ The sensor exposes the following attributes:
 
 The component allows you to get the status of each port.
 
-![PoE consumption sensor](images/sensor_port_state.png)
+![Prt status sensor](images/sensor_port_state.png)
 
 
 There are several sensors that are always present:
@@ -75,7 +77,9 @@ _Note: The sensor will be unavailable if the port is not enabled (see [port stat
 
 The component allows you to get the PoE status of each port.
 
-![PoE consumption sensor](images/sensor_port_poe_state.png)
+![PoE status sensor](images/sensor_port_poe_state.png)
+
+These sensors will not be added to Home Assistant if the device does not support PoE.
 
 There are several sensors that are always present:
 * `binary_sensor.<integration_name>_port_<port_number>_poe_state`
