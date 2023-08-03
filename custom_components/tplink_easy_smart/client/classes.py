@@ -120,6 +120,19 @@ class PortState:
 
 
 # ---------------------------
+#   PortStatistics
+# ---------------------------
+@dataclass
+class PortStatistics:
+    number: int
+    enabled: bool
+    tx_good_pkts: int
+    tx_bad_pkts: int
+    rx_good_pkts: int
+    rx_bad_pkts: int
+
+
+# ---------------------------
 #   PortPoeState
 # ---------------------------
 @dataclass
