@@ -28,10 +28,11 @@ Home Assistant custom component for control TP-Link Easy Smart switches over LAN
 
 ## Supported models
 
-|                                          Name                                            |  Revision | Confirmed |           Notes                         |
-|------------------------------------------------------------------------------------------|-----------|-----------|-----------------------------------------|
-| [TL-SG1016PE](https://www.tp-link.com/en/business-networking/poe-switch/tl-sg1016pe/)    |   V1, V3  |    Yes    | All features are available              |
-| [TL-SG105E](https://www.tp-link.com/en/business-networking/easy-smart-switch/tl-sg105e/) |     V5    |    Yes    | PoE is not supported by device          |
+|                                          Name                                            |  Revision | Confirmed |           Notes                             |
+|------------------------------------------------------------------------------------------|-----------|-----------|---------------------------------------------|
+| [TL-SG1016PE](https://www.tp-link.com/en/business-networking/poe-switch/tl-sg1016pe/)    |   V1, V3  |    Yes    | All features are available                  |
+| [TL-SG105E](https://www.tp-link.com/en/business-networking/easy-smart-switch/tl-sg105e/) |     V5    |    Yes    | PoE is not supported by device              |
+| [TL-SG108E](https://www.tp-link.com/en/business-networking/easy-smart-switch/tl-sg108e/) |     V6    |    Yes    | Network information & Port status supported |
 | Other Easy Smart switches with web-based user interface                                  | --------- |    No     | Will most likely work                   
 
 ## Installation
