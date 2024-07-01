@@ -11,7 +11,10 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import POWER_WATT
+from homeassistant.const import (
+    UnitOfPower
+)
+
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -84,7 +87,7 @@ async def async_setup_entry(
                     key="poe_consumption",
                     icon="mdi:lightning-bolt",
                     device_class=SensorDeviceClass.POWER,
-                    native_unit_of_measurement=POWER_WATT,
+                    native_unit_of_measurement=UnitOfPower.WATT,
                     state_class=SensorStateClass.MEASUREMENT,
                     device_name=coordinator.get_switch_info().name,
                     function_uid=_FUNCTION_UID_POE_INFO,
