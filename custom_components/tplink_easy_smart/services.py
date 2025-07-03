@@ -6,7 +6,7 @@ from typing import Final
 
 import voluptuous as vol
 
-from homeassistant.backports.enum import StrEnum
+from enum import StrEnum
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError, ServiceNotFound
