@@ -104,10 +104,10 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         """Return the switch PoE state."""
         return self._poe_state
 
-    def _safe_disconnect(self, api: TpLinkApi) -> None:
+    async def _safe_disconnect(self, api: TpLinkApi) -> None:
         """Disconnect from API."""
         try:
-            self.hass.async_add_job(api.disconnect)
+            await api.disconnect()
         except Exception as ex:
             _LOGGER.warning("Can not schedule disconnect: %s", str(ex))
 
@@ -124,9 +124,9 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         await self._update_port_poe_states()
         _LOGGER.debug("Update completed")
 
-    def unload(self) -> None:
+    async def async_unload(self) -> None:
         """Unload the coordinator and disconnect from API."""
-        self._safe_disconnect(self._api)
+        await self._safe_disconnect(self._api)
 
     async def _update_switch_info(self):
         """Update the switch info."""

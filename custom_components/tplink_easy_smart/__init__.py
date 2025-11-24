@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     await coordinator.async_config_entry_first_refresh()
 
     config_entry.async_on_unload(config_entry.add_update_listener(update_listener))
-    config_entry.async_on_unload(coordinator.unload)
+    config_entry.async_on_unload(coordinator.async_unload)
 
     set_coordinator(hass, config_entry, coordinator)
 
@@ -81,7 +81,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     if unload_ok:
         coordinator = pop_coordinator(hass, config_entry)
         if coordinator and isinstance(coordinator, TpLinkDataUpdateCoordinator):
-            coordinator.unload()
+            await coordinator.async_unload()
     await async_unload_services(hass, config_entry)
     return unload_ok
 
