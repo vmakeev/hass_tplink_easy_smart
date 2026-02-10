@@ -151,6 +151,7 @@ class TpLinkControllerOptionsFlowHandler(OptionsFlow):
     def __init__(self, config_entry):
         """Initialize options flow."""
         self.options = dict(config_entry.options)
+        self._local_config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -168,9 +169,9 @@ class TpLinkControllerOptionsFlowHandler(OptionsFlow):
                 {
                     vol.Required(
                         CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(
+                        default=self._local_config_entry.options.get(
                             CONF_SCAN_INTERVAL,
-                            self.config_entry.data.get(
+                            self._local_config_entry.data.get(
                                 CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                             ),
                         ),
@@ -191,13 +192,13 @@ class TpLinkControllerOptionsFlowHandler(OptionsFlow):
                 {
                     vol.Required(
                         OPT_PORT_STATE_SWITCHES,
-                        default=self.config_entry.options.get(
+                        default=self._local_config_entry.options.get(
                             OPT_PORT_STATE_SWITCHES, DEFAULT_PORT_STATE_SWITCHES
                         ),
                     ): bool,
                     vol.Required(
                         OPT_POE_STATE_SWITCHES,
-                        default=self.config_entry.options.get(
+                        default=self._local_config_entry.options.get(
                             OPT_POE_STATE_SWITCHES, DEFAULT_POE_STATE_SWITCHES
                         ),
                     ): bool,
