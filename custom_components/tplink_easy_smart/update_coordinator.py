@@ -18,8 +18,15 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .client.classes import PoePowerLimit, PoePriority, TpLinkSystemInfo
-from .client.const import FEATURE_POE
-from .client.tplink_api import PoeState, PortPoeState, PortSpeed, PortState, TpLinkApi
+from .client.const import FEATURE_POE, FEATURE_STATS
+from .client.tplink_api import (
+    PoeState,
+    PortPoeState,
+    PortSpeed,
+    PortState,
+    TpLinkApi,
+    PortStatistics,
+)
 from .const import ATTR_MANUFACTURER, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,6 +52,7 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         self._port_states: list[PortState] = []
         self._port_poe_states: list[PortPoeState] = []
         self._poe_state: PoeState | None = None
+        self._port_statistics: list[PortStatistics] = []
 
         update_interval = config_entry.options.get(
             CONF_SCAN_INTERVAL,
@@ -90,6 +98,16 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
             return None
         return self._port_states[number - 1]
 
+    def get_port_statistics(self, number: int) -> PortStatistics | None:
+        """Return the specified port statistics."""
+        if (
+            number > self.ports_count
+            or number < 1
+            or len(self._port_statistics) < number
+        ):
+            return None
+        return self._port_statistics[number - 1]
+
     def get_port_poe_state(self, number: int) -> PortPoeState | None:
         """Return the specified port PoE state."""
         if number > self.ports_poe_count or number < 1:
@@ -122,6 +140,7 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         await self._update_port_states()
         await self._update_poe_state()
         await self._update_port_poe_states()
+        await self._update_port_statistics()
         _LOGGER.debug("Update completed")
 
     async def async_unload(self) -> None:
@@ -139,6 +158,17 @@ class TpLinkDataUpdateCoordinator(DataUpdateCoordinator):
         except Exception as ex:
             _LOGGER.warning("Can not get port states: %s", repr(ex))
             self._port_states = []
+
+    async def _update_port_statistics(self):
+        """Update port statistis."""
+        if not await self.is_feature_available(FEATURE_STATS):
+            return
+
+        try:
+            self._port_statistics = await self._api.get_port_statistics()
+        except Exception as ex:
+            _LOGGER.warning("Can not get port statistics: %s", repr(ex))
+            self._port_statistics = []
 
     async def _update_poe_state(self):
         """Update the switch PoE state."""
